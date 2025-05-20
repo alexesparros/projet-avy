@@ -1,13 +1,10 @@
 # Wine Scraper
 
-Ce projet contient des scripts Python pour scraper les données de vins depuis différents sites web.
+Ce projet contient des scripts Python pour scraper les données de vins depuis Vinatis.
 
 ## Sites supportés
 
-- Wineandco
 - Vinatis
-- Vinmalin
-- Viniphile
 
 ## Installation
 
@@ -27,10 +24,8 @@ pip install -r requirements.txt
 Chaque script peut être exécuté indépendamment :
 
 ```bash
-python scrape_wineandco.py
 python scrape_vinatis.py
-python scrape_vinmalin.py
-python scrape_viniphile.py
+
 ```
 
 Les données sont exportées au format CSV.
@@ -38,23 +33,9 @@ Les données sont exportées au format CSV.
 ## Structure des données
 
 Les scripts extraient les informations suivantes pour chaque vin :
-- Nom
-- Prix
-- Appellation
-- Cépage
-- Millésime
-- Région
-- Pays
-- Description
-- Image
-- URL
+
 
 ## Dépendances
-
-- Selenium
-- Pandas
-- Webdriver Manager
-- Chrome WebDriver
 
 ## Note
 
