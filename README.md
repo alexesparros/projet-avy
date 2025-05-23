@@ -1,6 +1,6 @@
 # Wine Scraper
 
-Ce projet contient des scripts Python pour scraper les données de vins depuis Vinatis.
+Ce projet contient des scripts Python pour scraper les données de vins depuis Vinatis et nettoyer les données.
 
 ## Sites supportés
 
