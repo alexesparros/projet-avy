@@ -39,6 +39,7 @@ debug_*/
 
 # CSV files
 *.csv
+!vins_vinatis_flat_complet.csv
 
 # Logs
 *.log
