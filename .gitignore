@@ -1,0 +1,6 @@
+# Fichiers de données
+*.csv
+
+# Dossiers spécifiques
+__pycache__/
+env
