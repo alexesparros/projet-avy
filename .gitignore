@@ -4,3 +4,4 @@
 # Dossiers spécifiques
 __pycache__/
 env
+venv
