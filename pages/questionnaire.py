@@ -90,7 +90,6 @@ def questionnaire():
 
     # 🎮 Interface principale
 
-    st.set_page_config(page_title="Profil de joueur connecté", page_icon="🎮")
     init_db()
 
     # 🔐 Vérifie la connexion utilisateur

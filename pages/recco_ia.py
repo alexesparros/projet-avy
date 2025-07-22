@@ -3,6 +3,7 @@ import google.generativeai as genai
 from google.api_core.exceptions import NotFound
 from pages.inscription import inscription
 import base64
+import os
 
 def reco_ia():
     # -------------------------------
@@ -18,7 +19,7 @@ def reco_ia():
 
     genai.configure(api_key=API_KEY)
 
-    st.title(f"🎮 Quels jeux pour {st.session_state["username"]} ?")
+    st.title(f"🎮 Quels jeux pour {st.session_state['username']} ?")
     st.markdown("""
     Entrez un **nom de jeu**, un **type de jeu** (ex : roguelike, FPS, aventure narrative...) ou une **expérience recherchée** (ex : jeux coopératifs, ambiance relaxante...).
     Vous recevrez 5 suggestions de jeux correspondants, avec une courte description pour chacun.
@@ -152,10 +153,10 @@ def reco_ia():
                             description += b + " "
                     st.markdown(
                         f"""
-                        <div style='margin-top:0.5em;font-size:1.08em;color:#ffffff'>
+                        <div style='margin-top:0.5em;font-size:1.08em;color:#222222'>
                             <span style='display:block;margin-bottom:0.4em;'>{description.strip()}</span>
                             <span style='color:#90EE90;font-weight:600;'>{note}</span>
-                            <span style='display:block;margin-top:0.35em;font-style:italic;color:#ffffff'>{critique}</span>
+                            <span style='display:block;margin-top:0.35em;font-style:italic;color:#444444'>{critique}</span>
                         </div>
                         """, unsafe_allow_html=True
                     )
@@ -164,16 +165,23 @@ def reco_ia():
                     # Liens plus espacés
                     nom_url = nom_clean.replace(' ', '+')
                     youtube_url = f"https://www.youtube.com/results?search_query={nom_url}+trailer+officiel"
+                    # Encodage base64 des icônes pour affichage fiable dans Streamlit
+                    def img_to_base64(path):
+                        with open(path, "rb") as f:
+                            return base64.b64encode(f.read()).decode()
+                    google_b64 = img_to_base64("projet-avy/static/google.png")
+                    steam_b64 = img_to_base64("projet-avy/static/steam.png")
+                    youtube_b64 = img_to_base64("projet-avy/static/youtube.png")
                     html_code = f"""
                                 <div style='margin-top:0.5em;'>
                                     <a href='https://www.google.com/search?q={nom_url}+jeu+vidéo' target='_blank'>
-                                        <img src="app/static/google.png" alt="Google" style="height:20px; vertical-align:middle;"> Google
+                                        <img src='data:image/png;base64,{google_b64}' alt='Google' style='height:20px; vertical-align:middle;'> Google
                                     </a> &nbsp|&nbsp
                                     <a href='https://store.steampowered.com/search/?term={nom_url}' target='_blank'>
-                                        <img src="app/static/steam.png" alt="Steam" style="height:20px; vertical-align:middle;"> Steam
+                                        <img src='data:image/png;base64,{steam_b64}' alt='Steam' style='height:20px; vertical-align:middle;'> Steam
                                     </a> &nbsp|&nbsp
                                     <a href='{youtube_url}' target='_blank'>
-                                        <img src="app/static/youtube.png" alt="YouTube" style="height:20px; vertical-align:middle;"> YouTube Trailer
+                                        <img src='data:image/png;base64,{youtube_b64}' alt='YouTube' style='height:20px; vertical-align:middle;'> YouTube Trailer
                                     </a>
                                 </div>
                                 """

@@ -24,6 +24,8 @@ st.session_state["connection"].commit()
 
 
 def inscription():
+    if "connection" not in st.session_state:
+        st.session_state["connection"] = sqlite3.connect("database_clients", check_same_thread=False)
 
     # Titre
     st.title("Page d'inscription")
