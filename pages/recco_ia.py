@@ -8,11 +8,7 @@ from keys import GEMINI_API_KEY as API_KEY
 import os
 
 def reco_ia():
-    # -------------------------------
-    #AIzaSyBnAj3CzZSBn5Cutib7bfIyTrnLNz0RAxQ --> clé API Val
-    #AIzaSyCvo4ShDeNoDeLnoEII9HgPPP7pGkBjR2o --> clé API Yann
-    #AIzaSyA7o8u_WUaLcAc4CyqMCJdq4zs56tysZr4 --> clé API Alex
-    # -------------------------------
+
 
     if not API_KEY:
         st.error("❌ Clé API Gemini manquante. Renseigne-la dans le code.")

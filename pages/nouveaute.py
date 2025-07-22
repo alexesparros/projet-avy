@@ -2,11 +2,10 @@ import streamlit as st
 import requests
 import google.generativeai as genai
 from datetime import datetime, timedelta
-from keys import GEMINI_API_KEY
+from keys import GEMINI_API_KEY, RAWG_API_KEY
 
 def nouveaute():
 
-    RAWG_API_KEY = "882a57223cae4769ab45cc507bd1bdb7"
     genai.configure(api_key=GEMINI_API_KEY)
 
     today = datetime.today()
