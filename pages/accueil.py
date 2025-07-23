@@ -77,6 +77,3 @@ def accueil():
                 time.sleep(delay)
 
         imgslot.image(logo.resize((300, 300), Image.LANCZOS))
-
-if __name__ == "__main__":
-    main()

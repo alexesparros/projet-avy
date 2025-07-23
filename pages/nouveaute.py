@@ -18,7 +18,6 @@ def nouveaute():
         f"&key={RAWG_API_KEY}"
     )
 
-    st.title("Nouveautés de la semaine")
 
     resp = requests.get(RAWG_URL)
     if resp.status_code != 200:
@@ -31,7 +30,6 @@ def nouveaute():
         st.error("Aucun jeu trouvé cette semaine via RAWG.")
         st.stop()
 
-    st.subheader("Nouveautés enrichies :")
 
     for idx, game in enumerate(games):
         name = game.get("name", "Jeu inconnu")
@@ -46,9 +44,21 @@ def nouveaute():
             f"la plateforme principale (si tu sais), le genre (si tu sais), "
             f"et une phrase d’accroche originale pour gamer. Sois aéré et complice."
         )
+            # f"""Tu es un expert du jeu vidéo. je vais te présenter une liste de jeux
+            # on role est de me fournir une description fun (2 à 5 lignes, ambiance, gameplay, humour) pour chaque jeu "
+            # a plateforme principale (si tu sais), le genre (si tu sais), "
+            # et une phrase d’accroche originale pour gamer. Sois aéré et complice."
+            # Voici un exemple de ce que tu dois me renvoyer :
+            # {"jeu1": "nomjeu", "short_des":"....","plateforme":"pc","genres":[aventure,action],"accroche:"accroche",
+            # "jeu2"...}
+            # Voici les deux jeux pour lesquels tu dois me renvoyer UNIQUEMENT le json
+            # ratchet & clank 2, hogwarts legacy, inscryption
+            # """
         try:
             model = genai.GenerativeModel('models/gemini-1.5-flash-latest')
+            st.write("DEBUT")
             response = model.generate_content(prompt)
+            st.write("FIN")
             description = response.text
         except Exception as e:
             description = f"Impossible d'obtenir la description Gemini. Erreur : {e}"

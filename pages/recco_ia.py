@@ -7,6 +7,7 @@ from utils.recommender import recommander_jeux_via_ia
 from keys import GEMINI_API_KEY as API_KEY
 import os
 
+
 def reco_ia():
     if "username" not in st.session_state:
         st.warning("Merci de vous connecter pour accéder à la recommandation de jeux.")
@@ -138,9 +139,9 @@ def reco_ia():
                     st.markdown(
                         f"""
                         <div style='margin-top:0.5em;font-size:1.08em;color:#222222'>
-                            <span style='display:block;margin-bottom:0.4em;'>{description.strip()}</span>
-                            <span style='color:#90EE90;font-weight:600;'>{note}</span>
-                            <span style='display:block;margin-top:0.35em;font-style:italic;color:#444444'>{critique}</span>
+                            <span style='display:block;margin-bottom:0.4em;color:#FAFAFA'>{description.strip()}</span>
+                            <span style='color:#D3D3D3;font-weight:600;'>{note}</span>
+                            <span style='display:block;margin-top:0.35em;font-style:italic;color:#FAFAFA'>{critique}</span>
                         </div>
                         """, unsafe_allow_html=True
                     )
