@@ -1,2 +1,12 @@
+<<<<<<< HEAD
 # ... éventuel contenu existant ...
 keys.py 
+=======
+# Fichiers de données
+*.csv
+
+# Dossiers spécifiques
+__pycache__/
+env
+venv
+>>>>>>> 156dd6839024693ecdf72da4780ba6498b37b0da

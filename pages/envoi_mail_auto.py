@@ -1,7 +1,10 @@
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 import smtplib
+<<<<<<< HEAD
 from utils.helpers import send_welcome_email
+=======
+>>>>>>> 156dd6839024693ecdf72da4780ba6498b37b0da
 
 
 def send_welcome_email(receiver_email, username):

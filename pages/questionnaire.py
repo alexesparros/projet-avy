@@ -1,7 +1,10 @@
 import streamlit as st
 import pandas as pd
+<<<<<<< HEAD
 from utils.plotting import plot_radar
 from utils.data_loader import init_db_profil, enregistrer_ou_mettre_a_jour_profil
+=======
+>>>>>>> 156dd6839024693ecdf72da4780ba6498b37b0da
 import matplotlib.pyplot as plt
 import numpy as np
 import sqlite3
@@ -92,12 +95,20 @@ def questionnaire():
 
     # 🎮 Interface principale
 
+<<<<<<< HEAD
+=======
+    st.set_page_config(page_title="Profil de joueur connecté", page_icon="🎮")
+>>>>>>> 156dd6839024693ecdf72da4780ba6498b37b0da
     init_db()
 
     # 🔐 Vérifie la connexion utilisateur
     if "username" not in st.session_state:
+<<<<<<< HEAD
         st.warning("Merci de vous connecter pour accéder au questionnaire.")
         st.stop()
+=======
+        st.warning("🚧 Aucun utilisateur connecté. Définis `st.session_state['username']` avant de répondre.")
+>>>>>>> 156dd6839024693ecdf72da4780ba6498b37b0da
 
     username = st.session_state["username"]
     st.title(f"🎮 Bienvenue, {username} ! Découvrons ton profil de joueur")
