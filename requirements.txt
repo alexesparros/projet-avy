@@ -1,1 +1,14 @@
-pandas 
+pandas
+streamlit
+streamlit-chat
+numpy
+matplotlib
+google-generativeai
+google-api-core
+google-api-python-client
+google-auth
+requests
+pillow
+tqdm
+pydantic
+protobuf

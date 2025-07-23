@@ -1,7 +1,7 @@
 import pandas as pd
 import ast
 from utils_clean_steam import (
-    parse_str_to_dict_or_list,
+    #parse_str_to_dict_or_list,
     get_nested_value,
     get_list_descriptions,
     clean_list_to_string,

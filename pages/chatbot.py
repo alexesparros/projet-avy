@@ -1,17 +1,16 @@
 import streamlit as st
 from streamlit_chat import message
 import google.generativeai as genai
+from keys import GEMINI_API_KEY
 
 
 def chatbot():
 
     # Configuration Gemini
-    genai.configure(api_key="AIzaSyCvo4ShDeNoDeLnoEII9HgPPP7pGkBjR2o")
+    genai.configure(api_key=GEMINI_API_KEY)
 
     if "history" not in st.session_state:
         st.session_state["history"] = []
-
-    st.title("💬 Chatbot jeux vidéo")
 
     user_input = st.text_input("Pose ta question :", key="chatbox")
 

@@ -2,15 +2,21 @@ import streamlit as st
 import google.generativeai as genai
 from google.api_core.exceptions import NotFound
 from pages.inscription import inscription
-import base64
+from utils.helpers import img_to_base64, extraire_jeux_texte
+from utils.recommender import recommander_jeux_via_ia
+from keys import GEMINI_API_KEY as API_KEY
+import os
+
 
 def reco_ia():
-    # -------------------------------
-    API_KEY = "AIzaSyBnAj3CzZSBn5Cutib7bfIyTrnLNz0RAxQ"
-    #AIzaSyBnAj3CzZSBn5Cutib7bfIyTrnLNz0RAxQ --> clé API Val
-    #AIzaSyCvo4ShDeNoDeLnoEII9HgPPP7pGkBjR2o --> clé API Yann
-    #AIzaSyA7o8u_WUaLcAc4CyqMCJdq4zs56tysZr4 --> clé API Alex
-    # -------------------------------
+    if "username" not in st.session_state:
+        st.warning("Merci de vous connecter pour accéder à la recommandation de jeux.")
+        st.stop()
+
+    # Affichage du message de confirmation de connexion
+    if st.session_state.get("just_logged_in", False):
+        st.success(f"✅ Bienvenue, {st.session_state['username']} ! 🎉")
+        st.session_state["just_logged_in"] = False  # Pour ne l’afficher qu’une fois
 
     if not API_KEY:
         st.error("❌ Clé API Gemini manquante. Renseigne-la dans le code.")
@@ -18,7 +24,7 @@ def reco_ia():
 
     genai.configure(api_key=API_KEY)
 
-    st.title(f"🎮 Quels jeux pour {st.session_state["username"]} ?")
+    st.title(f"🎮 Quels jeux pour {st.session_state['username']} ?")
     st.markdown("""
     Entrez un **nom de jeu**, un **type de jeu** (ex : roguelike, FPS, aventure narrative...) ou une **expérience recherchée** (ex : jeux coopératifs, ambiance relaxante...).
     Vous recevrez 5 suggestions de jeux correspondants, avec une courte description pour chacun.
@@ -36,7 +42,7 @@ def reco_ia():
         st.session_state["favoris"] = []
 
     # Affichage des favoris
-    st.sidebar.header("🎮 Mes jeux favoris")
+    st.sidebar.header("Mes jeux favoris")
     if st.session_state["favoris"]:
         for fav in st.session_state["favoris"]:
             st.sidebar.markdown(f"**{fav['nom']}**")
@@ -45,26 +51,6 @@ def reco_ia():
             st.sidebar.markdown("---")
     else:
         st.sidebar.info("Aucun favori pour l’instant.")
-
-    def extraire_jeux_texte(texte):
-        import re
-        jeux_brut = re.findall(
-            r"\d+\.\s*([^\n]+)\n(.*?)(?:Note\s*:\s*(\d+/10))?\s*(?:Critique\s*:\s*(.*?))?(?=\n\d+\.|$)",
-            texte, re.DOTALL)
-        jeux = []
-        for nom, desc, note, critique in jeux_brut:
-            nom_ligne = nom.strip()
-            # Nettoie les balises markdown et les préfixes 'Nom', 'Nom :', etc.
-            nom_ligne = re.sub(r"^[*_`]+|[*_`]+$", "", nom_ligne)
-            nom_ligne = re.sub(r"^(le )?nom\s*[:\-]*\s*", "", nom_ligne, flags=re.IGNORECASE)
-            if re.match(r"^(le )?nom du jeu\s*:?$", nom_ligne, re.IGNORECASE):
-                desc_lignes = desc.strip().split('\n', 1)
-                vrai_nom = desc_lignes[0].strip()
-                desc = desc[len(vrai_nom):].lstrip('\n').lstrip() if len(desc_lignes) > 1 else ''
-            else:
-                vrai_nom = nom_ligne
-            jeux.append((vrai_nom, desc, note, critique))
-        return jeux
 
     if rechercher:
         st.session_state["reco_requete"] = requete
@@ -152,10 +138,10 @@ def reco_ia():
                             description += b + " "
                     st.markdown(
                         f"""
-                        <div style='margin-top:0.5em;font-size:1.08em;color:#ffffff'>
-                            <span style='display:block;margin-bottom:0.4em;'>{description.strip()}</span>
-                            <span style='color:#90EE90;font-weight:600;'>{note}</span>
-                            <span style='display:block;margin-top:0.35em;font-style:italic;color:#ffffff'>{critique}</span>
+                        <div style='margin-top:0.5em;font-size:1.08em;color:#222222'>
+                            <span style='display:block;margin-bottom:0.4em;color:#FAFAFA'>{description.strip()}</span>
+                            <span style='color:#D3D3D3;font-weight:600;'>{note}</span>
+                            <span style='display:block;margin-top:0.35em;font-style:italic;color:#FAFAFA'>{critique}</span>
                         </div>
                         """, unsafe_allow_html=True
                     )
@@ -164,16 +150,21 @@ def reco_ia():
                     # Liens plus espacés
                     nom_url = nom_clean.replace(' ', '+')
                     youtube_url = f"https://www.youtube.com/results?search_query={nom_url}+trailer+officiel"
+                    # Encodage base64 des icônes pour affichage fiable dans Streamlit
+                    google_b64 = img_to_base64("static/google.png")
+                    steam_b64 = img_to_base64("static/steam.png")
+                    youtube_b64 = img_to_base64("static/youtube.png")
+                    epic_b64 = img_to_base64("static/epic_games.png")
                     html_code = f"""
                                 <div style='margin-top:0.5em;'>
                                     <a href='https://www.google.com/search?q={nom_url}+jeu+vidéo' target='_blank'>
-                                        <img src="app/static/google.png" alt="Google" style="height:20px; vertical-align:middle;"> Google
+                                        <img src='data:image/png;base64,{google_b64}' alt='Google' style='height:20px; vertical-align:middle;'> Google
                                     </a> &nbsp|&nbsp
                                     <a href='https://store.steampowered.com/search/?term={nom_url}' target='_blank'>
-                                        <img src="app/static/steam.png" alt="Steam" style="height:20px; vertical-align:middle;"> Steam
+                                        <img src='data:image/png;base64,{steam_b64}' alt='Steam' style='height:20px; vertical-align:middle;'> Steam
                                     </a> &nbsp|&nbsp
                                     <a href='{youtube_url}' target='_blank'>
-                                        <img src="app/static/youtube.png" alt="YouTube" style="height:20px; vertical-align:middle;"> YouTube Trailer
+                                        <img src='data:image/png;base64,{youtube_b64}' alt='YouTube' style='height:20px; vertical-align:middle;'> YouTube Trailer
                                     </a>
                                 </div>
                                 """
