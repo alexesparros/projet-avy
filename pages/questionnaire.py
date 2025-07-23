@@ -1,10 +1,7 @@
 import streamlit as st
 import pandas as pd
-<<<<<<< HEAD
 from utils.plotting import plot_radar
 from utils.data_loader import init_db_profil, enregistrer_ou_mettre_a_jour_profil
-=======
->>>>>>> 156dd6839024693ecdf72da4780ba6498b37b0da
 import matplotlib.pyplot as plt
 import numpy as np
 import sqlite3
@@ -95,20 +92,12 @@ def questionnaire():
 
     # 🎮 Interface principale
 
-<<<<<<< HEAD
-=======
-    st.set_page_config(page_title="Profil de joueur connecté", page_icon="🎮")
->>>>>>> 156dd6839024693ecdf72da4780ba6498b37b0da
     init_db()
 
     # 🔐 Vérifie la connexion utilisateur
     if "username" not in st.session_state:
-<<<<<<< HEAD
         st.warning("Merci de vous connecter pour accéder au questionnaire.")
         st.stop()
-=======
-        st.warning("🚧 Aucun utilisateur connecté. Définis `st.session_state['username']` avant de répondre.")
->>>>>>> 156dd6839024693ecdf72da4780ba6498b37b0da
 
     username = st.session_state["username"]
     st.title(f"🎮 Bienvenue, {username} ! Découvrons ton profil de joueur")
@@ -140,8 +129,8 @@ def questionnaire():
     q20_criteria = st.text_area("🤖 Si une IA devait te recommander **le jeu parfait**, que devrait-elle absolument prendre en compte ?")
 
     # Bouton final
-    if st.button("📊 Générer mon profil de joueur"):
-        st.success("Voici ton profil radar 🎯")
+    if st.button("Générer mon profil de joueur"):
+        st.success("Voici ton profil radar")
 
     # Radar
     categories = list(profil.keys())
@@ -151,13 +140,16 @@ def questionnaire():
     angles += angles[:1]
 
     fig, ax = plt.subplots(figsize=(6, 6), subplot_kw=dict(polar=True))
-    ax.plot(angles, values, linewidth=2)
+    ax.plot(angles, values, linewidth=1.75)
     ax.fill(angles, values, alpha=0.25)
     ax.set_yticklabels([])
     ax.set_xticks(angles[:-1])
-    ax.set_xticklabels(categories, fontsize=10)
-    ax.set_title(f"🧠 Profil de {username}", size=14, pad=20)
-    st.pyplot(fig)
+    ax.set_xticklabels(categories, fontsize=8)
+    ax.set_title(f"Profil de {username}", size=14, pad=20)
+    plt.tight_layout()
+    _, col2, _ = st.columns([1, 2, 1])
+    with col2:
+        st.pyplot(fig)
 
     # Résumé
     st.markdown("### 📋 Résumé")
@@ -169,7 +161,7 @@ def questionnaire():
     st.markdown(f"- 🤖 **Critères IA** : {q20_criteria}")
 
     df = pd.DataFrame({"Note /10": list(profil.values())}, index=profil.keys())
-    st.markdown("### 🎚️ Tes notes")
+    st.markdown("###Tes notes")
     st.dataframe(df)
 
     # 💾 Sauvegarde BDD

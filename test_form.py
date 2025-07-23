@@ -8,4 +8,4 @@ with st.form("test_form"):
     password = st.text_input("Mot de passe", type="password")
     submit = st.form_submit_button("S'inscrire")
     if submit:
-        st.success(f"Formulaire soumis avec pseudo={pseudo}, email={email}") 
+        st.success(f"Formulaire soumis avec pseudo={pseudo}, email={email}")

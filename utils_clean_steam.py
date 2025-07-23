@@ -1,6 +1,3 @@
-<<<<<<< HEAD
-# Ce fichier est désormais vide. Toutes les fonctions ont été déplacées dans utils/preprocessing.py
-=======
 import ast
 import re
 
@@ -34,4 +31,3 @@ def extract_date(x):
 def clean_languages(x):
     """Supprime les balises HTML dans les langues supportées."""
     return re.sub(r"<.*?>", "", x) if isinstance(x, str) else x
->>>>>>> 156dd6839024693ecdf72da4780ba6498b37b0da

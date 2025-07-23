@@ -1,10 +1,7 @@
-<<<<<<< HEAD
-# Ce fichier est désormais vide. Toutes les fonctions ont été déplacées dans utils/preprocessing.py
-=======
 import pandas as pd
 import ast
 from utils_clean_steam import (
-    parse_str_to_dict_or_list,
+    #parse_str_to_dict_or_list,
     get_nested_value,
     get_list_descriptions,
     clean_list_to_string,
@@ -63,4 +60,3 @@ def clean_steam_data(df):
     df_clean.to_csv("df_clean.csv")
 
     return df_clean
->>>>>>> 156dd6839024693ecdf72da4780ba6498b37b0da
