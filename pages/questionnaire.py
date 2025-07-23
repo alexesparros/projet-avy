@@ -96,7 +96,8 @@ def questionnaire():
 
     # 🔐 Vérifie la connexion utilisateur
     if "username" not in st.session_state:
-        st.warning("🚧 Aucun utilisateur connecté. Définis `st.session_state['username']` avant de répondre.")
+        st.warning("Merci de vous connecter pour accéder au questionnaire.")
+        st.stop()
 
     username = st.session_state["username"]
     st.title(f"🎮 Bienvenue, {username} ! Découvrons ton profil de joueur")

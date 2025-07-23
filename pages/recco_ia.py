@@ -8,7 +8,14 @@ from keys import GEMINI_API_KEY as API_KEY
 import os
 
 def reco_ia():
+    if "username" not in st.session_state:
+        st.warning("Merci de vous connecter pour accéder à la recommandation de jeux.")
+        st.stop()
 
+    # Affichage du message de confirmation de connexion
+    if st.session_state.get("just_logged_in", False):
+        st.success(f"✅ Bienvenue, {st.session_state['username']} ! 🎉")
+        st.session_state["just_logged_in"] = False  # Pour ne l’afficher qu’une fois
 
     if not API_KEY:
         st.error("❌ Clé API Gemini manquante. Renseigne-la dans le code.")
