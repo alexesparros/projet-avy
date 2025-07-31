@@ -1,13 +1,24 @@
 import streamlit as st
 import sqlite3
 from time import sleep
-#import os
+import os
+from datetime import datetime
 
-
-st.session_state["connection"] = sqlite3.connect("database_clients.db", check_same_thread=False)
+st.session_state["connection"] = sqlite3.connect(os.path.join("projet-avy", "database_clients.db"), check_same_thread=False)
 c = st.session_state["connection"].cursor()
 
+try:
+    c.execute("ALTER TABLE users ADD COLUMN derniere_connexion TEXT;")
+except Exception:
+    pass
+try:
+    c.execute("ALTER TABLE users ADD COLUMN date_inscription TEXT;")
+except Exception:
+    pass
+st.session_state["connection"].commit()
+
 def connexion():
+
     with st.form("login_form"):
         username = st.text_input("Nom d'utilisateur")
         password = st.text_input("Mot de passe", type="password")
@@ -21,6 +32,9 @@ def connexion():
             result = c.fetchone()
 
             if result:
+                # Met à jour la date de dernière connexion
+                c.execute("UPDATE users SET derniere_connexion = ? WHERE username = ?", (datetime.now().isoformat(), username))
+                st.session_state["connection"].commit()
                 st.success(f"✅ Connexion réussie ! Bienvenue, {username} 🎉")
                 sleep(2)
                 st.session_state["username"] = username

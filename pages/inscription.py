@@ -2,10 +2,12 @@ import streamlit as st
 import sqlite3
 from time import sleep
 from utils.helpers import send_welcome_email
-#import os
+import os
+from datetime import datetime
 
 def inscription():
-    db_path = "database_clients.db"
+
+    db_path = os.path.join("projet-avy", "database_clients.db")
     if "connection" not in st.session_state:
         st.session_state["connection"] = sqlite3.connect(db_path, check_same_thread=False)
     c = st.session_state["connection"].cursor()
@@ -14,7 +16,9 @@ def inscription():
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             username TEXT UNIQUE,
             email TEXT UNIQUE,
-            password TEXT
+            password TEXT,
+            date_inscription TEXT,
+            derinère_connexion TEXT
         )
     ''')
     st.session_state["connection"].commit()
@@ -39,8 +43,8 @@ def inscription():
                 else:
                     try:
                         c.execute(
-                            "INSERT INTO users (email, password, username) VALUES (?, ?, ?)",
-                            (new_email, new_password, new_username)
+                            "INSERT INTO users (email, password, username, date_inscription) VALUES (?, ?, ?, ?)",
+                            (new_email, new_password, new_username, datetime.now().isoformat())
                         )
                         st.session_state["connection"].commit()
                         st.success("✅ Inscription réussie ! Vous pouvez maintenant vous connecter.")

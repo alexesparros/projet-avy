@@ -7,6 +7,7 @@ from email.mime.multipart import MIMEMultipart
 import smtplib
 
 def extraire_jeux_texte(texte):
+
     """Extrait les jeux, descriptions, notes et critiques d'un texte structuré."""
     jeux_brut = re.findall(
         r"\d+\.\s*([^\n]+)\n(.*?)(?:Note\s*:\s*(\d+/10))?\s*(?:Critique\s*:\s*(.*?))?(?=\n\d+\.|$)",
@@ -26,17 +27,19 @@ def extraire_jeux_texte(texte):
     return jeux
 
 def img_to_base64(path):
+
     """Encode une image en base64 pour affichage dans Streamlit."""
     with open(path, "rb") as f:
         return base64.b64encode(f.read()).decode()
 
 def send_welcome_email(receiver_email, username):
+
     """Envoie un email de bienvenue à un nouvel utilisateur."""
     sender_email = "ludrun.contact@gmail.com"
     sender_password = "khil hpbn unny cpzy"
     subject = "Bienvenue sur notre site !"
     body = f"""Salut {username} ,
-    
+
     Bravo ! Tu viens d’entrer dans le QG des gamers indécis — aka Ludrun.
     Ici, c’est simple : fini les débats à rallonge du style “On joue à quoi ce soir ?”, les scrolls infinis sur Steam et les ragequits de fin de soirée. Grâce à toi (et un peu à nous), tu vas pouvoir trouver le jeu parfait pour ta vibe du moment. 
     Que tu sois plutôt FPS nerveux, RPG planant, rogue-like exigeant ou simulateur de chèvre (oui oui, on juge pas), on est là pour t’aiguiller avec style.
@@ -59,3 +62,22 @@ def send_welcome_email(receiver_email, username):
         print("Email envoyé !")
     except Exception as e:
         print(f"Erreur envoi mail : {e}")
+
+def traduire_texte(texte, cible='fr'):
+
+    """
+    Traduit un texte dans la langue cible (par défaut : français) en utilisant l'API Google Translate gratuite.
+    """
+    import requests
+    url = "https://translate.googleapis.com/translate_a/single"
+    params = {
+        "client": "gtx",
+        "sl": "auto",
+        "tl": cible,
+        "dt": "t",
+        "q": texte
+    }
+    r = requests.get(url, params=params)
+    if r.status_code == 200:
+        return r.json()[0][0][0]
+    return texte

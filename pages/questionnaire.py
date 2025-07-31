@@ -6,11 +6,13 @@ import matplotlib.pyplot as plt
 import numpy as np
 import sqlite3
 from datetime import datetime
+import os
 
 def questionnaire():
     # 🔧 Initialiser la base SQLite avec username unique
     def init_db():
-        conn = sqlite3.connect("profil_gamer.db")
+        db_path = os.path.join("projet-avy", "database_clients.db")
+        conn = sqlite3.connect(db_path)
         c = conn.cursor()
         c.execute('''
         CREATE TABLE IF NOT EXISTS reponses (
@@ -36,7 +38,8 @@ def questionnaire():
 
     # 🔄 Enregistrement intelligent (INSERT ou UPDATE)
     def enregistrer_ou_mettre_a_jour(username, annee_jeu, type_joueur, budget_mensuel, jeu_marquant, critere_ia, profil_scores):
-        conn = sqlite3.connect("profil_gamer.db")
+        db_path = os.path.join("projet-avy", "database_clients.db")
+        conn = sqlite3.connect(db_path)
         c = conn.cursor()
 
         # Vérifie si le profil existe déjà
@@ -87,8 +90,8 @@ def questionnaire():
             profil_scores["Curiosité"]
             ))
 
-            conn.commit()
-            conn.close()
+        conn.commit()
+        conn.close()
 
     # 🎮 Interface principale
 
@@ -130,26 +133,7 @@ def questionnaire():
 
     # Bouton final
     if st.button("Générer mon profil de joueur"):
-        st.success("Voici ton profil radar")
-
-    # Radar
-    categories = list(profil.keys())
-    values = list(profil.values())
-    values += values[:1]
-    angles = np.linspace(0, 2 * np.pi, len(categories), endpoint=False).tolist()
-    angles += angles[:1]
-
-    fig, ax = plt.subplots(figsize=(6, 6), subplot_kw=dict(polar=True))
-    ax.plot(angles, values, linewidth=1.75)
-    ax.fill(angles, values, alpha=0.25)
-    ax.set_yticklabels([])
-    ax.set_xticks(angles[:-1])
-    ax.set_xticklabels(categories, fontsize=8)
-    ax.set_title(f"Profil de {username}", size=14, pad=20)
-    plt.tight_layout()
-    _, col2, _ = st.columns([1, 2, 1])
-    with col2:
-        st.pyplot(fig)
+        st.success("Voici ton profil radar (affichage dans Mon Profil)")
 
     # Résumé
     st.markdown("### 📋 Résumé")

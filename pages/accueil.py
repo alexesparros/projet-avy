@@ -65,15 +65,19 @@ def accueil():
             st.error("❌ L'image 'ludrun.png' est introuvable.")
             return
 
-        imgslot = st.empty()  # zone d'affichage dynamique
-        angles = list(range(0, 360, 15))
-        delay = 0.2
-
-        for _ in range(2):
-            for angle in angles:
-                rotated = logo.rotate(angle, resample=Image.BICUBIC, expand=True)
-                resized = rotated.resize((300, 300), Image.LANCZOS)
-                imgslot.image(resized)
-                time.sleep(delay)
-
-        imgslot.image(logo.resize((300, 300), Image.LANCZOS))
+# Affiche l'image avec une classe CSS
+        st.markdown(
+            """
+            <style>
+            .rotate {
+                animation: spin 2s linear infinite;
+            }
+            @keyframes spin {
+                from { transform: rotate(0deg); }
+                to { transform: rotate(360deg); }
+            }
+            </style>
+            <img src="app/static/ludrun.icone.png" class="rotate" width="200">
+            """,
+            unsafe_allow_html=True
+        )
