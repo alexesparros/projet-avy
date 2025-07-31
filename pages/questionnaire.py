@@ -1,6 +1,5 @@
 import streamlit as st
 import pandas as pd
-from utils.plotting import plot_radar
 from utils.data_loader import init_db_profil, enregistrer_ou_mettre_a_jour_profil
 import matplotlib.pyplot as plt
 import numpy as np
@@ -131,10 +130,6 @@ def questionnaire():
     # IA
     q20_criteria = st.text_area("🤖 Si une IA devait te recommander **le jeu parfait**, que devrait-elle absolument prendre en compte ?")
 
-    # Bouton final
-    if st.button("Générer mon profil de joueur"):
-        st.success("Voici ton profil radar (affichage dans Mon Profil)")
-
     # Résumé
     st.markdown("### 📋 Résumé")
     st.markdown(f"- 👤 **Utilisateur** : `{username}`")
@@ -145,9 +140,21 @@ def questionnaire():
     st.markdown(f"- 🤖 **Critères IA** : {q20_criteria}")
 
     df = pd.DataFrame({"Note /10": list(profil.values())}, index=profil.keys())
-    st.markdown("###Tes notes")
+    st.markdown("### 🎯 Tes notes")
     st.dataframe(df)
 
-    # 💾 Sauvegarde BDD
-    enregistrer_ou_mettre_a_jour(username, q1_years, q2_type, q8_budget, q10_impact, q20_criteria, profil)
-    st.success("✅ Ton profil a bien été enregistré ou mis à jour !")
+    # Bouton d'enregistrement
+    st.markdown("---")
+    col1, col2, col3 = st.columns([1, 2, 1])
+    
+    with col2:
+        if st.button("💾 Enregistrer mon profil", type="primary", use_container_width=True):
+            # 💾 Sauvegarde BDD
+            enregistrer_ou_mettre_a_jour(username, q1_years, q2_type, q8_budget, q10_impact, q20_criteria, profil)
+            st.success("✅ Ton profil a bien été enregistré !")
+            st.balloons()
+            
+            # Confirmation de succès
+            st.markdown("### 🎮 Ton profil est prêt !")
+            st.markdown("✅ Tes données ont été sauvegardées avec succès.")
+            st.markdown("💡 Tu peux maintenant aller dans la page **'Mon Profil'** pour voir ton radar chart et tes statistiques.")

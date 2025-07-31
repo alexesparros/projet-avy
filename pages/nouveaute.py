@@ -48,13 +48,19 @@ def nouveaute():
             st.image(game["background_image"], width=400)
         st.write(f"**Date de sortie :** {game.get('released', 'N/A')}")
         # Badges plateformes
-        plateformes = [plat["platform"]["name"] for plat in game.get("platforms", [])]
+        platforms_data = game.get("platforms", [])
+        plateformes = []
+        if platforms_data:
+            plateformes = [plat["platform"]["name"] for plat in platforms_data if plat and plat.get("platform")]
         if plateformes:
             st.markdown("<span style='font-weight:600'>Plateformes :</span> " + " ".join([
                 f"<span style='background:#e0e7ff;color:#2d3a6b;padding:0.3em 0.8em;border-radius:1em;margin-right:0.3em;font-size:0.95em'>{p}</span>" for p in plateformes
             ]), unsafe_allow_html=True)
         # Badges genres
-        genres = [genre["name"] for genre in game.get("genres", [])]
+        genres_data = game.get("genres", [])
+        genres = []
+        if genres_data:
+            genres = [genre["name"] for genre in genres_data if genre]
         if genres:
             st.markdown("<span style='font-weight:600'>Genres :</span> " + " ".join([
                 f"<span style='background:#ffe0e0;color:#a12d2d;padding:0.3em 0.8em;border-radius:1em;margin-right:0.3em;font-size:0.95em'>{g}</span>" for g in genres
@@ -65,11 +71,14 @@ def nouveaute():
             if desc:
                 desc_fr = traduire_texte(desc)
                 st.markdown(f"**Description (FR) :** {desc_fr[:400]}{'...' if len(desc_fr)>400 else ''}")
-            devs = ", ".join([d['name'] for d in details.get('developers', [])])
-            pubs = ", ".join([p['name'] for p in details.get('publishers', [])])
+            devs_data = details.get('developers', [])
+            devs = ", ".join([d['name'] for d in devs_data if d]) if devs_data else ""
+            pubs_data = details.get('publishers', [])
+            pubs = ", ".join([p['name'] for p in pubs_data if p]) if pubs_data else ""
             st.write(f"**Développeur(s) :** {devs if devs else 'N/A'}")
             st.write(f"**Éditeur(s) :** {pubs if pubs else 'N/A'}")
-            tags = ", ".join([t['name'] for t in details.get('tags', [])[:5]])
+            tags_data = details.get('tags', [])
+            tags = ", ".join([t['name'] for t in tags_data[:5] if t]) if tags_data else ""
             st.write(f"**Tags :** {tags if tags else 'N/A'}")
             if details.get('website'):
                 st.write(f"[Site officiel]({details['website']})")

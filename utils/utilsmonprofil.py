@@ -13,21 +13,33 @@ def afficher_mon_profil():
     username = st.session_state["username"]
 
     # 2. Connexion base utilisateur
-    base_dir = os.path.dirname(os.path.dirname(os.path.abspath("database_clients.db")))
-    db_path = os.path.join(base_dir, "projet-avy", "database_clients.db")
+    db_path = os.path.join("projet-avy", "database_clients.db")
     if not os.path.exists(db_path):
         st.error(f"Base de données introuvable : {db_path}")
         return
-    conn_user = sqlite3.connect(db_path)
-    cur_user = conn_user.cursor()
-    cur_user.execute("SELECT id, email, date_inscription, derniere_connexion FROM users WHERE username = ?", (username,))
-    row = cur_user.fetchone()
+    
+    try:
+        conn_user = sqlite3.connect(db_path)
+        cur_user = conn_user.cursor()
+        
+        # Vérifier si la table users existe
+        cur_user.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='users'")
+        if not cur_user.fetchone():
+            st.error("Table users introuvable. Veuillez vous inscrire d'abord.")
+            return
+        
+        cur_user.execute("SELECT id, email, date_inscription, derniere_connexion FROM users WHERE username = ?", (username,))
+        row = cur_user.fetchone()
 
-    if not row:
-        st.error("Utilisateur introuvable.")
+        if not row:
+            st.error(f"Utilisateur '{username}' introuvable dans la base de données.")
+            st.info("💡 Assurez-vous d'être bien inscrit et connecté.")
+            return
+
+        id_user, email, date_inscription, derniere_connexion = row
+    except Exception as e:
+        st.error(f"Erreur lors de la connexion à la base de données : {e}")
         return
-
-    id_user, email, date_inscription, derniere_connexion = row
 
     # 3. Connexion base profil
     db_profil_path = os.path.join("projet-avy", "database_clients.db")
@@ -86,7 +98,7 @@ def afficher_mon_profil():
         if not df_fav.empty:
             for i, row in df_fav.iterrows():
                 c1, c2 = st.columns([5, 1])
-                c1.markdown(f"- {row['nom_jeu']} ({row['note']}/10)")
+                c1.markdown(f"- {row['nom_jeu']} ({row['note']})")
                 if c2.button("🗑️ Retirer", key=f"deletefav{username}_{i}"):
                     conn_del = sqlite3.connect(profil_gamer_path)
                     c_del = conn_del.cursor()
@@ -106,6 +118,12 @@ def afficher_mon_profil():
         nom = st.text_input("Nom du jeu")
         note = st.slider("Note", 1, 10, 7)
         if st.form_submit_button("Ajouter"):
+            # Initialiser df s'il n'existe pas
+            try:
+                df = pd.read_csv(path_csv)
+            except FileNotFoundError:
+                df = pd.DataFrame(columns=["nom", "note"])
+            
             df = pd.concat([df, pd.DataFrame([{"nom": nom, "note": note}])], ignore_index=True)
             df.to_csv(path_csv, index=False)
             st.success(f"{nom} ajouté à tes favoris.")
@@ -137,19 +155,49 @@ def afficher_mon_profil():
             )
         ''')
         conn_radar.commit()
-        df_radar = pd.read_sql_query("""
-            SELECT competition, narration, exploration, creativite, detente, social, immersion, curiosite
+        
+        # Récupérer les données du profil complet
+        df_profil = pd.read_sql_query("""
+            SELECT annee_jeu, type_joueur, budget_mensuel, jeu_marquant, critere_ia,
+                   competition, narration, exploration, creativite, detente, social, immersion, curiosite
             FROM reponses
             WHERE username = ?
             ORDER BY timestamp DESC LIMIT 1
         """, conn_radar, params=(username,))
         conn_radar.close()
 
-        if not df_radar.empty:
-            fig = plot_radar(df_radar.columns.tolist(), df_radar.iloc[0].tolist(), username)
-            st.pyplot(fig)
+        if not df_profil.empty:
+            # Affichage des informations du profil
+            profil_row = df_profil.iloc[0]
+            col1, col2 = st.columns([1, 1])
+            
+            with col1:
+                st.markdown("### 🎯 Mes statistiques")
+                st.markdown(f"**👤 Type de joueur :** {profil_row['type_joueur']}")
+                st.markdown(f"**📅 Années de jeu :** {profil_row['annee_jeu']} ans")
+                st.markdown(f"**💸 Budget mensuel :** {profil_row['budget_mensuel']} €")
+                st.markdown(f"**🎮 Jeu marquant :** {profil_row['jeu_marquant']}")
+                if profil_row['critere_ia']:
+                    st.markdown(f"**🤖 Critères IA :** {profil_row['critere_ia']}")
+            
+            with col2:
+                st.markdown("### 📊 Mon radar chart")
+                # Radar chart
+                radar_columns = ['competition', 'narration', 'exploration', 'creativite', 'detente', 'social', 'immersion', 'curiosite']
+                radar_labels = ['Compétition', 'Narration', 'Exploration', 'Créativité', 'Détente', 'Social', 'Immersion', 'Curiosité']
+                radar_values = [profil_row[col] for col in radar_columns]
+                
+                fig = plot_radar(radar_labels, radar_values, username)
+                st.pyplot(fig)
+                
+                # Légende des scores
+                st.markdown("**📈 Interprétation :**")
+                st.markdown("- **0-3** : Pas trop ton truc")
+                st.markdown("- **4-6** : Ça peut le faire")
+                st.markdown("- **7-10** : C'est ton kiff !")
         else:
-            st.info("Tu n’as pas encore répondu au questionnaire.")
+            st.info("Tu n'as pas encore répondu au questionnaire.")
+            st.markdown("👉 Va dans la page **'Questionnaire'** pour créer ton profil !")
     except Exception as e:
         st.error(f"Erreur radar : {e}")
 

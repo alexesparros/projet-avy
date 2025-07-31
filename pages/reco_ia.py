@@ -5,6 +5,16 @@ from utils.helpers import img_to_base64
 from keys import GEMINI_API_KEY as API_KEY
 import re
 
+# Cache pour les images en base64
+@st.cache_data
+def get_cached_images():
+    """Cache les images pour éviter de les recharger à chaque fois"""
+    return {
+        "google": img_to_base64("static/google.png"),
+        "steam": img_to_base64("static/steam.png"),
+        "youtube": img_to_base64("static/youtube.png")
+    }
+
 def reco_ia():
 
     if "username" not in st.session_state:
@@ -12,7 +22,7 @@ def reco_ia():
         st.stop()
 
     if st.session_state.get("just_logged_in", False):
-        st.success(f"✅ Bienvenue, {st.session_state['username']} ! 🎉")
+        st.success(f"✅ Bienvenue, {st.session_state['username']} ! 🎉")
         st.session_state["just_logged_in"] = False
 
     if not API_KEY:
@@ -48,7 +58,7 @@ def reco_ia():
                 ]
             st.sidebar.markdown("---")
     else:
-        st.sidebar.info("Aucun favori pour l’instant.")
+        st.sidebar.info("Aucun favori pour l'instant.")
 
     if rechercher:
         if requete.strip() == "":
@@ -60,46 +70,73 @@ def reco_ia():
             or st.session_state.get("reco_requete") != requete
         ):
             st.session_state["reco_requete"] = requete
-            with st.spinner("🔎 Votre recommandation est au four..."):
-                prompt = (
-                    f"Tu es un expert passionné du jeu vidéo, critique reconnu dans la presse spécialisée, "
-                    f"mais aussi le pote de soirée qui conseille toujours le bon jeu. "
-                    f"Réponds avec expertise, humour, et beaucoup de références. "
-                    f"Propose-moi 5 jeux vidéo correspondant à : {requete}. "
-                    "Pour chaque jeu, donne :\n"
-                    "- Le nom du jeu (en gras),\n"
-                    "- Une description fun, immersive, pleine d'anecdotes et de références, d'au moins 5 lignes.\n"
-                    "- Une note sur 10 (format : Note : X/10),\n"
-                    "- Une mini-critique subjective (2 phrases max, commence par 'Critique :').\n"
-                    "Présente la liste de façon bien structurée, numérotée, et aérée. Termine par une phrase bonus drôle ou complice pour gamer, précédée de 'Phrase bonus :'."
+            
+            # Charger les images en cache
+            cached_images = get_cached_images()
+            
+            # Barre de progression
+            progress_bar = st.progress(0)
+            status_text = st.empty()
+            
+            status_text.text("🔎 Connexion à l'IA...")
+            progress_bar.progress(20)
+            
+            status_text.text("🤖 Génération des recommandations...")
+            progress_bar.progress(50)
+            
+            prompt = (
+                f"Tu es un expert passionné du jeu vidéo, critique reconnu dans la presse spécialisée, "
+                f"mais aussi le pote de soirée qui conseille toujours le bon jeu. "
+                f"Réponds avec expertise, humour, et beaucoup de références. "
+                f"Propose-moi 5 jeux vidéo correspondant à : {requete}. "
+                "Pour chaque jeu, donne :\n"
+                "- Le nom du jeu (en gras),\n"
+                "- Une description fun, immersive, pleine d'anecdotes et de références, d'au moins 5 lignes.\n"
+                "- Une note sur 10 (format : Note : X/10),\n"
+                "- Une mini-critique subjective (2 phrases max, commence par 'Critique :').\n"
+                "Présente la liste de façon bien structurée, numérotée, et aérée. Termine par une phrase bonus drôle ou complice pour gamer, précédée de 'Phrase bonus :'."
+            )
+
+            try:
+                model = genai.GenerativeModel('models/gemini-1.5-flash-latest')
+                
+                # Utiliser un timeout et une réponse non-streaming pour plus de rapidité
+                response = model.generate_content(prompt, generation_config={
+                    'temperature': 0.8,
+                    'top_p': 0.9,
+                    'max_output_tokens': 2000,
+                })
+                
+                status_text.text("📝 Traitement des résultats...")
+                progress_bar.progress(80)
+                
+                recommandations_brutes = response.text
+
+                match = re.search(
+                    r"Phrase bonus\s*:(.*)$",
+                    recommandations_brutes,
+                    re.IGNORECASE | re.DOTALL
                 )
+                if match:
+                    st.session_state["phrase_humoristique"] = match.group(1).strip()
+                    recommandations = recommandations_brutes[:match.start()].strip()
+                else:
+                    st.session_state["phrase_humoristique"] = None
+                    recommandations = recommandations_brutes
 
-                try:
-                    model = genai.GenerativeModel('models/gemini-1.5-flash-latest')
-                    reco_chunks = model.generate_content(prompt, stream=True)
+                st.session_state["reco_resultats"] = recommandations
+                
+                status_text.text("✅ Recommandations prêtes !")
+                progress_bar.progress(100)
 
-                    recommandations_brutes = ""
-                    for chunk in reco_chunks:
-                        recommandations_brutes += chunk.text
-
-                    match = re.search(
-                        r"Phrase bonus\s*:(.*)$",
-                        recommandations_brutes,
-                        re.IGNORECASE | re.DOTALL
-                    )
-                    if match:
-                        st.session_state["phrase_humoristique"] = match.group(1).strip()
-                        recommandations = recommandations_brutes[:match.start()].strip()
-                    else:
-                        st.session_state["phrase_humoristique"] = None
-                        recommandations = recommandations_brutes
-
-                    st.session_state["reco_resultats"] = recommandations
-
-                except NotFound:
-                    st.error("❌ Modèle Gemini introuvable ou non supporté.")
-                except Exception as e:
-                    st.error(f"❌ Erreur lors de la génération : {e}")
+            except NotFound:
+                st.error("❌ Modèle Gemini introuvable ou non supporté.")
+            except Exception as e:
+                st.error(f"❌ Erreur lors de la génération : {e}")
+            finally:
+                # Nettoyer la barre de progression
+                progress_bar.empty()
+                status_text.empty()
 
         else:
             st.info("✅ Résultat déjà généré pour cette recherche !")
@@ -174,20 +211,20 @@ def reco_ia():
 
                     nom_url = nom_clean.replace(' ', '+')
                     youtube_url = f"https://www.youtube.com/results?search_query={nom_url}+trailer+officiel"
-                    google_b64 = img_to_base64("static/google.png")
-                    steam_b64 = img_to_base64("static/steam.png")
-                    youtube_b64 = img_to_base64("static/youtube.png")
+                    
+                    # Utiliser les images en cache
+                    cached_images = get_cached_images()
 
                     html_code = f"""
                         <div style='margin-top:0.5em;'>
                             <a href='https://www.google.com/search?q={nom_url}+jeu+vidéo' target='_blank'>
-                                <img src='data:image/png;base64,{google_b64}' alt='Google' style='height:20px; vertical-align:middle;'> Google
+                                <img src='data:image/png;base64,{cached_images["google"]}' alt='Google' style='height:20px; vertical-align:middle;'> Google
                             </a> &nbsp|&nbsp
                             <a href='https://store.steampowered.com/search/?term={nom_url}' target='_blank'>
-                                <img src='data:image/png;base64,{steam_b64}' alt='Steam' style='height:20px; vertical-align:middle;'> Steam
+                                <img src='data:image/png;base64,{cached_images["steam"]}' alt='Steam' style='height:20px; vertical-align:middle;'> Steam
                             </a> &nbsp|&nbsp
                             <a href='{youtube_url}' target='_blank'>
-                                <img src='data:image/png;base64,{youtube_b64}' alt='YouTube' style='height:20px; vertical-align:middle;'> YouTube Trailer
+                                <img src='data:image/png;base64,{cached_images["youtube"]}' alt='YouTube' style='height:20px; vertical-align:middle;'> YouTube Trailer
                             </a>
                         </div>
                     """
