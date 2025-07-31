@@ -1,12 +1,10 @@
 import streamlit as st
 import requests
-import google.generativeai as genai
 from datetime import datetime, timedelta
-from keys import GEMINI_API_KEY, RAWG_API_KEY
+from keys import RAWG_API_KEY
+from utils.helpers import traduire_texte
 
 def nouveaute():
-
-    genai.configure(api_key=GEMINI_API_KEY)
 
     today = datetime.today()
     start_date = (today - timedelta(days=14)).strftime("%Y-%m-%d")
@@ -15,9 +13,8 @@ def nouveaute():
     RAWG_URL = (
         f"https://api.rawg.io/api/games"
         f"?dates={start_date},{end_date}&ordering=-released&page_size=7"
-        f"&key={RAWG_API_KEY}"
+        f"&key={RAWG_API_KEY}&lang=fr"
     )
-
 
     resp = requests.get(RAWG_URL)
     if resp.status_code != 200:
@@ -30,44 +27,65 @@ def nouveaute():
         st.error("Aucun jeu trouvé cette semaine via RAWG.")
         st.stop()
 
-
     for idx, game in enumerate(games):
-        name = game.get("name", "Jeu inconnu")
-        img_url = game.get("background_image", None)
-        platforms = ", ".join([plat["platform"]["name"] for plat in game.get("platforms", [])]) if "platforms" in game else "?"
-        genres = ", ".join([genre["name"] for genre in game.get("genres", [])]) if "genres" in game else "?"
-
-        # Prompt personnalisé PAR jeu
-        prompt = (
-            f"Tu es un expert du jeu vidéo. Présente '{name}' avec : "
-            f"une description fun (2 à 5 lignes, ambiance, gameplay, humour), "
-            f"la plateforme principale (si tu sais), le genre (si tu sais), "
-            f"et une phrase d’accroche originale pour gamer. Sois aéré et complice."
-        )
-            # f"""Tu es un expert du jeu vidéo. je vais te présenter une liste de jeux
-            # on role est de me fournir une description fun (2 à 5 lignes, ambiance, gameplay, humour) pour chaque jeu "
-            # a plateforme principale (si tu sais), le genre (si tu sais), "
-            # et une phrase d’accroche originale pour gamer. Sois aéré et complice."
-            # Voici un exemple de ce que tu dois me renvoyer :
-            # {"jeu1": "nomjeu", "short_des":"....","plateforme":"pc","genres":[aventure,action],"accroche:"accroche",
-            # "jeu2"...}
-            # Voici les deux jeux pour lesquels tu dois me renvoyer UNIQUEMENT le json
-            # ratchet & clank 2, hogwarts legacy, inscryption
-            # """
-        try:
-            model = genai.GenerativeModel('models/gemini-1.5-flash-latest')
-            st.write("DEBUT")
-            response = model.generate_content(prompt)
-            st.write("FIN")
-            description = response.text
-        except Exception as e:
-            description = f"Impossible d'obtenir la description Gemini. Erreur : {e}"
-
-        with st.container():
-            st.markdown(f"<div style='font-size:1.3em;font-weight:bold;'>{idx+1}. {name}</div>", unsafe_allow_html=True)
-            if img_url:
-                st.image(img_url, use_container_width=True)
-            st.markdown(f"**Plateformes RAWG** : {platforms}")
-            st.markdown(f"**Genres RAWG** : {genres}")
-            st.markdown(description)
-            st.markdown("---")
+        st.markdown(f"## {game.get('name', 'Jeu inconnu')}")
+        # Récupérer plus d'infos via /games/{id} en français
+        game_id = game.get('id')
+        details = None
+        if game_id:
+            detail_url = f"https://api.rawg.io/api/games/{game_id}?key={RAWG_API_KEY}&lang=fr"
+            detail_resp = requests.get(detail_url)
+            if detail_resp.status_code == 200:
+                details = detail_resp.json()
+        # Déterminer le lien cible (site officiel ou fiche RAWG)
+        site_officiel = details.get('website') if details else None
+        rawg_url = f"https://rawg.io/games/{game.get('slug')}" if game.get('slug') else None
+        lien_jeu = site_officiel if site_officiel else rawg_url
+        # Image cliquable
+        if game.get("background_image") and lien_jeu:
+            st.markdown(f"<a href='{lien_jeu}' target='_blank'><img src='{game['background_image']}' width='400' style='border-radius:1em;box-shadow:0 2px 16px #0002;'/></a>", unsafe_allow_html=True)
+        elif game.get("background_image"):
+            st.image(game["background_image"], width=400)
+        st.write(f"**Date de sortie :** {game.get('released', 'N/A')}")
+        # Badges plateformes
+        platforms_data = game.get("platforms", [])
+        plateformes = []
+        if platforms_data:
+            plateformes = [plat["platform"]["name"] for plat in platforms_data if plat and plat.get("platform")]
+        if plateformes:
+            st.markdown("<span style='font-weight:600'>Plateformes :</span> " + " ".join([
+                f"<span style='background:#e0e7ff;color:#2d3a6b;padding:0.3em 0.8em;border-radius:1em;margin-right:0.3em;font-size:0.95em'>{p}</span>" for p in plateformes
+            ]), unsafe_allow_html=True)
+        # Badges genres
+        genres_data = game.get("genres", [])
+        genres = []
+        if genres_data:
+            genres = [genre["name"] for genre in genres_data if genre]
+        if genres:
+            st.markdown("<span style='font-weight:600'>Genres :</span> " + " ".join([
+                f"<span style='background:#ffe0e0;color:#a12d2d;padding:0.3em 0.8em;border-radius:1em;margin-right:0.3em;font-size:0.95em'>{g}</span>" for g in genres
+            ]), unsafe_allow_html=True)
+            
+        if details:
+            desc = details.get('description_raw', '')
+            if desc:
+                desc_fr = traduire_texte(desc)
+                st.markdown(f"**Description (FR) :** {desc_fr[:400]}{'...' if len(desc_fr)>400 else ''}")
+            devs_data = details.get('developers', [])
+            devs = ", ".join([d['name'] for d in devs_data if d]) if devs_data else ""
+            pubs_data = details.get('publishers', [])
+            pubs = ", ".join([p['name'] for p in pubs_data if p]) if pubs_data else ""
+            st.write(f"**Développeur(s) :** {devs if devs else 'N/A'}")
+            st.write(f"**Éditeur(s) :** {pubs if pubs else 'N/A'}")
+            tags_data = details.get('tags', [])
+            tags = ", ".join([t['name'] for t in tags_data[:5] if t]) if tags_data else ""
+            st.write(f"**Tags :** {tags if tags else 'N/A'}")
+            if details.get('website'):
+                st.write(f"[Site officiel]({details['website']})")
+            # Screenshots
+            screenshots = details.get('short_screenshots', [])
+            if screenshots:
+                st.write("**Screenshots :**")
+                for sc in screenshots[:3]:
+                    st.image(sc['image'], width=250)
+        st.markdown("---")

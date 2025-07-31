@@ -1,16 +1,17 @@
 import streamlit as st
 import pandas as pd
-from utils.plotting import plot_radar
 from utils.data_loader import init_db_profil, enregistrer_ou_mettre_a_jour_profil
 import matplotlib.pyplot as plt
 import numpy as np
 import sqlite3
 from datetime import datetime
+import os
 
 def questionnaire():
     # 🔧 Initialiser la base SQLite avec username unique
     def init_db():
-        conn = sqlite3.connect("profil_gamer.db")
+        db_path = os.path.join("projet-avy", "database_clients.db")
+        conn = sqlite3.connect(db_path)
         c = conn.cursor()
         c.execute('''
         CREATE TABLE IF NOT EXISTS reponses (
@@ -36,7 +37,8 @@ def questionnaire():
 
     # 🔄 Enregistrement intelligent (INSERT ou UPDATE)
     def enregistrer_ou_mettre_a_jour(username, annee_jeu, type_joueur, budget_mensuel, jeu_marquant, critere_ia, profil_scores):
-        conn = sqlite3.connect("profil_gamer.db")
+        db_path = os.path.join("projet-avy", "database_clients.db")
+        conn = sqlite3.connect(db_path)
         c = conn.cursor()
 
         # Vérifie si le profil existe déjà
@@ -87,8 +89,8 @@ def questionnaire():
             profil_scores["Curiosité"]
             ))
 
-            conn.commit()
-            conn.close()
+        conn.commit()
+        conn.close()
 
     # 🎮 Interface principale
 
@@ -128,29 +130,6 @@ def questionnaire():
     # IA
     q20_criteria = st.text_area("🤖 Si une IA devait te recommander **le jeu parfait**, que devrait-elle absolument prendre en compte ?")
 
-    # Bouton final
-    if st.button("Générer mon profil de joueur"):
-        st.success("Voici ton profil radar")
-
-    # Radar
-    categories = list(profil.keys())
-    values = list(profil.values())
-    values += values[:1]
-    angles = np.linspace(0, 2 * np.pi, len(categories), endpoint=False).tolist()
-    angles += angles[:1]
-
-    fig, ax = plt.subplots(figsize=(6, 6), subplot_kw=dict(polar=True))
-    ax.plot(angles, values, linewidth=1.75)
-    ax.fill(angles, values, alpha=0.25)
-    ax.set_yticklabels([])
-    ax.set_xticks(angles[:-1])
-    ax.set_xticklabels(categories, fontsize=8)
-    ax.set_title(f"Profil de {username}", size=14, pad=20)
-    plt.tight_layout()
-    _, col2, _ = st.columns([1, 2, 1])
-    with col2:
-        st.pyplot(fig)
-
     # Résumé
     st.markdown("### 📋 Résumé")
     st.markdown(f"- 👤 **Utilisateur** : `{username}`")
@@ -161,9 +140,21 @@ def questionnaire():
     st.markdown(f"- 🤖 **Critères IA** : {q20_criteria}")
 
     df = pd.DataFrame({"Note /10": list(profil.values())}, index=profil.keys())
-    st.markdown("###Tes notes")
+    st.markdown("### 🎯 Tes notes")
     st.dataframe(df)
 
-    # 💾 Sauvegarde BDD
-    enregistrer_ou_mettre_a_jour(username, q1_years, q2_type, q8_budget, q10_impact, q20_criteria, profil)
-    st.success("✅ Ton profil a bien été enregistré ou mis à jour !")
+    # Bouton d'enregistrement
+    st.markdown("---")
+    col1, col2, col3 = st.columns([1, 2, 1])
+    
+    with col2:
+        if st.button("💾 Enregistrer mon profil", type="primary", use_container_width=True):
+            # 💾 Sauvegarde BDD
+            enregistrer_ou_mettre_a_jour(username, q1_years, q2_type, q8_budget, q10_impact, q20_criteria, profil)
+            st.success("✅ Ton profil a bien été enregistré !")
+            st.balloons()
+            
+            # Confirmation de succès
+            st.markdown("### 🎮 Ton profil est prêt !")
+            st.markdown("✅ Tes données ont été sauvegardées avec succès.")
+            st.markdown("💡 Tu peux maintenant aller dans la page **'Mon Profil'** pour voir ton radar chart et tes statistiques.")

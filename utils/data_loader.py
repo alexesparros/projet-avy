@@ -1,11 +1,12 @@
 # Fonctions de gestion de base de données pour le projet AVY
 
 import sqlite3
+import os
 from datetime import datetime
 
 # --- Gestion de la base clients (ex-database.py) ---
 def get_connection_clients():
-    return sqlite3.connect("database_clients.db")
+    return sqlite3.connect(os.path.join("projet-avy", "database_clients.db"))
 
 def create_table_clients():
     conn = get_connection_clients()
@@ -44,7 +45,8 @@ def add_questionnaire(client_id, reponse1, reponse2):
 
 # --- Gestion de la base questionnaire (ex-questionnaire.py) ---
 def init_db_profil():
-    conn = sqlite3.connect("profil_gamer.db")
+    db_path = os.path.join("projet-avy", "database_clients.db")
+    conn = sqlite3.connect(db_path)
     c = conn.cursor()
     c.execute('''
     CREATE TABLE IF NOT EXISTS reponses (
@@ -69,7 +71,8 @@ def init_db_profil():
     conn.close()
 
 def enregistrer_ou_mettre_a_jour_profil(username, annee_jeu, type_joueur, budget_mensuel, jeu_marquant, critere_ia, profil_scores):
-    conn = sqlite3.connect("profil_gamer.db")
+    db_path = os.path.join("projet-avy", "database_clients.db")
+    conn = sqlite3.connect(db_path)
     c = conn.cursor()
     c.execute("SELECT * FROM reponses WHERE username = ?", (username,))
     exist = c.fetchone()
@@ -115,4 +118,4 @@ def enregistrer_ou_mettre_a_jour_profil(username, annee_jeu, type_joueur, budget
         profil_scores["Curiosité"]
         ))
     conn.commit()
-    conn.close() 
+    conn.close()
