@@ -1,7 +1,10 @@
 pandas
-streamlit
+streamlit>=1.29.0
 streamlit-chat
-altair==4.2.2
+streamlit_option_menu
+altair>=5.0.0
+plotly
+yt-dlp
 numpy
 matplotlib
 google-generativeai
