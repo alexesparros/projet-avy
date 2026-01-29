@@ -1,6 +1,7 @@
 pandas
 streamlit
 streamlit-chat
+altair==4.2.2
 numpy
 matplotlib
 google-generativeai
